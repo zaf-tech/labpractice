@@ -1,16 +1,22 @@
 pipeline {
-    agent any
+
+agent {
+        label 'agent1' // Use the label 'agent' to target your Jenkins slave
+    }
 
     environment {
         GIT_REPO = 'git@github.com:zaftechnologies/git-practice.git'
         DIRECTORY_NAME = 'artifact'  // Name of the directory where repo will be cloned
+            AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
+            AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
+ 
     }
 
     stages {
         stage('Clone Repository') {
             steps {
                 // Checkout the Git repository with SSH key authentication
-                git branch: 'newbranch', 
+                git branch: 'main', 
                     credentialsId: 'github-ssh-key', 
                     url: "${GIT_REPO}"
             }
@@ -19,20 +25,77 @@ pipeline {
         stage('verify') {
             steps {
                 // Print the current working directory to debug
-                sh 'pwd'
                 sh 'ls'
-                sh 'ls artifact/'
-                sh 'ls artifact/hello_world.sh'
+                sh 'ls'
+                sh 'ls /'
+                sh 'ls hello_world.sh'
                 sh 'ls -l'  // List the contents to confirm the repo is
                 sh 'pwd'
+                sh 'mkdir -p artifact'
+                sh 'echo Hello > artifact/test.txt'
             }
         }        
 
+        stage('terraform') {
+            steps {
+                // Print terraform
+                sh 'terraform --version'
+                sh 'echo Terraform installed version'
+            }
+        }        
 
+        stage('Terraform Init') {
+            steps {
+                script {
+                    // Change to the terraform subdirectory and run terraform init
+                    dir('terraform') {
+                        sh 'terraform init'
+                    }
+                }
+            }
+        }
+
+        stage('Terraform plan') {
+            steps {
+                script {
+                    // Change to the terraform subdirectory and run terraform init
+                    dir('terraform') {
+                        sh  'terraform plan'
+                    }
+                }
+            }
+        }
+                             
+        stage('Terraform apply') {
+            steps {
+                script {
+                    // Change to the terraform subdirectory and run terraform init
+                    dir('terraform') {
+                    sh 'terraform apply --auto-approve'                    
+                    }
+                }
+            }
+        }
+        stage('sleep') {
+            steps {
+                // Print HelloWorld
+                sh 'sleep 500'
+            }
+        }            
+        stage('Terraform destroy') {
+            steps {
+                script {
+                    // Change to the terraform subdirectory and run terraform init
+                    dir('terraform') {
+                    sh 'terraform destroy --auto-approve'                    
+                    }
+                }
+            }
+        }        
         stage('HelloWorld') {
             steps {
                 // Print HelloWorld
-                sh 'sh artifact/hello_world.sh'
+                sh 'sh hello_world.sh'
             }
         }        
 
