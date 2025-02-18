@@ -76,10 +76,52 @@ agent {
                 }
             }
         }
+
+        stage('Get Public IP') { // New stage to capture the IP
+            steps {
+                script {
+                    def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
+                    env.PUBLIC_IP = publicIp // Store in an environment variable for later use
+                    echo "Public IP: ${env.PUBLIC_IP}" // Print it for verification
+                }
+            }
+        }
+
+    stage('SSH and Run Script') {
+        steps {
+            script {
+                def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
+
+                sshagent(credentials: ['your-ssh-credential-id']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@${publicIp} << EOFSSH
+                            #!/bin/bash
+                            # Create a temporary directory (optional but recommended)
+                            mkdir -p /tmp/scripts
+
+                            # Copy the script (you'll need to make it available to the Jenkins agent)
+                            scp /path/to/your/script.sh /tmp/scripts/
+
+                            # Make the script executable
+                            chmod +x /tmp/scripts/script.sh
+
+                            # Run the script
+                            /tmp/scripts/script.sh
+
+                            # Cleanup (optional)
+                            rm -rf /tmp/scripts
+
+EOFSSH
+                    """
+                }
+            }
+        }
+    }
+
         stage('sleep') {
             steps {
                 // Print HelloWorld
-                sh 'sleep 500'
+                sh 'sleep 5'
             }
         }            
         stage('Terraform destroy') {
