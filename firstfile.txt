@@ -1,2 +1,2 @@
-This is my first test file for git practice. 
+This is my first test file for git practice.     
 
