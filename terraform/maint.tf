@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh_1"
+  name        = "allow_ssh"
   description = "Allow SSH access"
 
   # Ingress rule to allow SSH (port 22) from anywhere
