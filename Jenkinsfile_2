@@ -21,7 +21,7 @@ agent any
             steps {
                 // Print the current working directory to debug
                 sh 'ls hello_world.sh'
-                sh 'ls -l'  // List the contents to confirm the repo is
+                sh 'ls'  // List the contents to confirm the repo is
                 sh 'pwd'
                 sh 'mkdir -p artifact'
                 sh 'echo Hello > artifact/test.txt'
