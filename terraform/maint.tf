@@ -2,8 +2,8 @@ provider "aws" {
   region = "us-east-2"  # Choose your desired region
 }
 
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
+resource "aws_security_group" "ssh_http" {
+  name        = "ssh_http"
   description = "Allow SSH access"
 
   # Ingress rule to allow SSH (port 22) from anywhere
@@ -13,6 +13,13 @@ resource "aws_security_group" "allow_ssh" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]  # Open to all IPs for SSH, can be restricted as needed
   }
+    ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Open to all IPs for SSH, can be restricted as needed
+  }
+
 
   # Egress rule to allow outbound traffic (default allows all)
   egress {

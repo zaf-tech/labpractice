@@ -69,29 +69,24 @@ agent {
 stage('Terraform apply and Get Public IP') {
     steps {
         script {
-            def publicIp = "" // Initialize publicIp
+            def publicIp = ""
 
             dir('terraform') {
                 sh 'terraform apply --auto-approve'
 
-                // Capture the public IP – handle potential errors
                 try {
                     publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
                     echo "Public IP: ${publicIp}"
                 } catch (err) {
                     echo "Error getting public IP: ${err.message}"
-                    // Handle the error appropriately, e.g., throw it to fail the build
-                    throw err // Or provide a default IP if you have one
+                    throw err
                 }
             }
 
-
-            // Run Linux commands on the instance using the obtained IP
-            // Wait until SSH is available
-            waitUntil(timeout: 20, unit: 'SECONDS') { // Timeout after 1 minute
+            waitUntil(time: 20, unit: 'SECONDS') {
                 try {
-                    sshagent(credentials: ['ec2-user']) { // Add sshagent here!
-                        sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'"
+                    sshagent(credentials: ['ec2-user']) {
+                        sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'" // UNSAFE!
                     }
                     return true
                 } catch (Exception e) {
@@ -100,20 +95,18 @@ stage('Terraform apply and Get Public IP') {
                 }
             }
 
-
             sshagent(credentials: ['ec2-user']) {
                 sh """
-                    ssh -o StrictHostKeyChecking=no -o ec2-user@${publicIp} << EOFSSH
+                    ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << EOFSSH  // UNSAFE!
                         #!/bin/bash
                         yum install -y ansible
                         yum install -y git
 EOFSSH
                 """
-
             }
         }
     }
-} 
+}
 
 stage('sleep') {
             steps {
