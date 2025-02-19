@@ -83,24 +83,28 @@ stage('Terraform apply and Get Public IP') {
                 }
             }
 
-            waitUntil(time: 20, unit: 'SECONDS') {
-                try {
-                    sshagent(credentials: ['ec2-user']) {
-                        sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'" // UNSAFE!
-                    }
-                    return true
-                } catch (Exception e) {
-                    echo "SSH not yet available. Retrying..."
-                    return false
-                }
             }
+        }
+    }
 
-            sshagent(credentials: ['ec2-user']) {
+stage('SSH to VM') {
+    steps {
+        script {
+            dir('terraform') {
+            def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim() // Get IP
+
+            sshagent(credentials: ['ec2-user']) { // Use 'ec2-user' credential
                 sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << EOFSSH  // UNSAFE!
+                    ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << EOFSSH
                         #!/bin/bash
-                        yum install -y ansible
-                        yum install -y git
+                        # Your commands here...  Examples:
+                        hostname
+                        uptime
+                        # Install a package (example)
+                        sudo yum update -y  # Or apt-get update -y for Ubuntu
+                        sudo yum install -y nginx  # Or apt-get install -y nginx
+                        sudo systemctl start nginx # Start the service
+                        sudo systemctl enable nginx # Enable on boot
 EOFSSH
                 """
             }
