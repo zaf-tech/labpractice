@@ -87,19 +87,26 @@ stage('Terraform apply and Get Public IP') {
 
 
             // Run Linux commands on the instance using the obtained IP
+            // Wait until SSH is available
+            waitUntil(timeout: 60, unit: 'SECONDS') { // Timeout after 1 minute
+                try {
+                    sh "ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/home/jenkins/.ssh/known_hosts -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'" // Try connecting
+                    return true // SSH connection successful
+                } catch (Exception e) {
+                    echo "SSH not yet available. Retrying..."
+                    return false // SSH connection failed, retry
+                }
+            }
+
+
             sshagent(credentials: ['ec2-user']) {
                 sh """
                     ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/home/jenkins/.ssh/known_hosts ec2-user@${publicIp} << EOFSSH
                         #!/bin/bash
-
-                        # Your 4 Linux commands here:
-                        echo "Hello Test1"
-                        echo "Hello Test2"
-                        echo "Hello Test3"
-                        echo "Hello Test4"
-
+                        # ... your commands ...
 EOFSSH
                 """
+
             }
         }
     }
