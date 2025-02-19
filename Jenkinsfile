@@ -103,7 +103,8 @@ stage('Terraform apply and Get Public IP') {
                 sh """
                     ssh -o StrictHostKeyChecking=no -o ec2-user@${publicIp} << EOFSSH
                         #!/bin/bash
-                        # ... your commands ...
+                        yum install -y ansible
+                        yum install -y git
 EOFSSH
                 """
 
