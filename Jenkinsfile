@@ -104,13 +104,13 @@ stage('SSH to VM') {
                         sudo yum update -y  # Or apt-get update -y for Ubuntu
                         sudo yum install -y nginx  # Or apt-get install -y nginx
                         sudo systemctl start nginx # Start the service
-                        sudo systemctl enable nginx # Enable on boot
+                        sudo systemctl enable nginx # Enable on boot  
 EOFSSH
                 """
-            }
         }
     }
     }
+}
 }
 
 stage('sleep') {
