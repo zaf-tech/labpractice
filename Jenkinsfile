@@ -86,33 +86,6 @@ stage('Terraform apply and Get Public IP') {
             }
         }
     }
-
-stage('SSH to VM') {
-    steps {
-        script {
-            dir('terraform') {
-            def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim() // Get IP
-
-            sshagent(credentials: ['ec2-user']) { // Use 'ec2-user' credential
-                sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << EOFSSH
-                        #!/bin/bash
-                        # Your commands here...  Examples:
-                        hostname
-                        uptime
-                        # Install a package (example)
-                        sudo yum update -y  # Or apt-get update -y for Ubuntu
-                        sudo yum install -y nginx  # Or apt-get install -y nginx
-                        sudo systemctl start nginx # Start the service
-                        sudo systemctl enable nginx # Enable on boot  
-EOFSSH
-                """
-        }
-    }
-    }
-}
-}
-
 stage('sleep') {
             steps {
                 // Print HelloWorld
