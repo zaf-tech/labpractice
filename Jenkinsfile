@@ -66,59 +66,44 @@ agent {
             }
         }
                              
-        stage('Terraform apply') {
-            steps {
-                script {
-                    // Change to the terraform subdirectory and run terraform init
-                    dir('terraform') {
-                    sh 'terraform apply --auto-approve'                    
-                    }
+stage('Terraform apply and Get Public IP') {
+    steps {
+        script {
+            def publicIp = "" // Initialize publicIp
+
+            dir('terraform') {
+                sh 'terraform apply --auto-approve'
+
+                // Capture the public IP – handle potential errors
+                try {
+                    publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
+                    echo "Public IP: ${publicIp}"
+                } catch (err) {
+                    echo "Error getting public IP: ${err.message}"
+                    // Handle the error appropriately, e.g., throw it to fail the build
+                    throw err // Or provide a default IP if you have one
                 }
             }
-        }
 
-        stage('Get Public IP') { // New stage to capture the IP
-            steps {
-                script {
-                    def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
-                    env.PUBLIC_IP = publicIp // Store in an environment variable for later use
-                    echo "Public IP: ${env.PUBLIC_IP}" // Print it for verification
-                }
-            }
-        }
 
-    stage('SSH and Run Script') {
-        steps {
-            script {
-                def publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
+            // Run Linux commands on the instance using the obtained IP
+            sshagent(credentials: ['ec2-user']) {
+                sh """
+                    ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/home/jenkins/.ssh/known_hosts ec2-user@${publicIp} << EOFSSH
+                        #!/bin/bash
 
-                sshagent(credentials: ['your-ssh-credential-id']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ec2-user@${publicIp} << EOFSSH
-                            #!/bin/bash
-                            # Create a temporary directory (optional but recommended)
-                            mkdir -p /tmp/scripts
-
-                            # Copy the script (you'll need to make it available to the Jenkins agent)
-                            scp /path/to/your/script.sh /tmp/scripts/
-
-                            # Make the script executable
-                            chmod +x /tmp/scripts/script.sh
-
-                            # Run the script
-                            /tmp/scripts/script.sh
-
-                            # Cleanup (optional)
-                            rm -rf /tmp/scripts
+                        # Your 4 Linux commands here:
+                        echo "Hello Test1"
+                        echo "Hello Test2"
+                        echo "Hello Test3"
+                        echo "Hello Test4"
 
 EOFSSH
-                    """
-                }
+                """
             }
         }
     }
-
-        stage('sleep') {
+}        stage('sleep') {
             steps {
                 // Print HelloWorld
                 sh 'sleep 5'
