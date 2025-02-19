@@ -88,13 +88,15 @@ stage('Terraform apply and Get Public IP') {
 
             // Run Linux commands on the instance using the obtained IP
             // Wait until SSH is available
-            waitUntil(timeout: 60, unit: 'SECONDS') { // Timeout after 1 minute
+            waitUntil(timeout: 20, unit: 'SECONDS') { // Timeout after 1 minute
                 try {
-                    sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'" // Try connecting
-                    return true // SSH connection successful
+                    sshagent(credentials: ['ec2-user']) { // Add sshagent here!
+                        sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'"
+                    }
+                    return true
                 } catch (Exception e) {
                     echo "SSH not yet available. Retrying..."
-                    return false // SSH connection failed, retry
+                    return false
                 }
             }
 
