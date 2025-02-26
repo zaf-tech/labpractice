@@ -85,17 +85,6 @@ stage('Terraform apply and Get Public IP') {
             }
 
             }
-        }
-    }
-
-        stage('sleep') {
-            steps {
-                // Print HelloWorld
-                sh 'echo ${publicIp}'
-            }
-        } 
-        stage('SSH and Run Script') {
-            steps {
                 script {
                     sshagent(['ec2-user']) {
                         sh """
@@ -105,9 +94,17 @@ stage('Terraform apply and Get Public IP') {
                             exit
                         """
                     }
-                }
-            }
+                }            
         }
+    }
+
+        stage('sleep') {
+            steps {
+                // Print HelloWorld
+                sh 'echo Complete'
+            }
+        } 
+
     
         stage('Terraform destroy') {
             steps {
