@@ -108,13 +108,7 @@ stage('Terraform apply and Get Public IP') {
                 }
             }
         }
-
-stage('sleep') {
-            steps {
-                // Print HelloWorld
-                sh 'sleep 5'
-            }
-        }            
+    
         stage('Terraform destroy') {
             steps {
                 script {
