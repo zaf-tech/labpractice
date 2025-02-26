@@ -104,7 +104,7 @@ stage('Terraform apply and SSH to VM') {
                     ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << "EOF"
                         sudo yum install -y ansible
                         sudo yum install -y git
-                        sudo echo "Testwords" >> /opt/hello_world
+                        sudo echo "Testwords" >> /tmp/hello_world
                         exit
                     EOF
                 """
