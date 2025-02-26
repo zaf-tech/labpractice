@@ -87,6 +87,21 @@ stage('Terraform apply and Get Public IP') {
             }
         }
     }
+        stage('SSH and Run Script') {
+            steps {
+                script {
+                    sshagent(['ec2-user']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << "EOF"
+                            sudo yum install -y ansible
+                            sudo yum install -y git
+                            exit
+                        """
+                    }
+                }
+            }
+        }
+
 stage('sleep') {
             steps {
                 // Print HelloWorld
