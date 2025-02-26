@@ -66,7 +66,7 @@ agent {
             }
         }
                              
-stage('Terraform apply and Get Public IP') {
+stage('Terraform apply and SSH to VM') {
     steps {
         script {
             def publicIp = ""
@@ -84,20 +84,18 @@ stage('Terraform apply and Get Public IP') {
                 }
             }
 
+            sshagent(['ec2-user']) {  // sshagent inside the *same* script block
+                sh """
+                    ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << "EOF"
+                        sudo yum install -y ansible
+                        sudo yum install -y git
+                        exit
+                    EOF
+                """
             }
-                script {
-                    sshagent(['ec2-user']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << "EOF"
-                            sudo yum install -y ansible
-                            sudo yum install -y git
-                            exit
-                        """
-                    }
-                }            
         }
     }
-
+}
         stage('sleep') {
             steps {
                 // Print HelloWorld
