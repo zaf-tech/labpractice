@@ -84,7 +84,22 @@ stage('Terraform apply and SSH to VM') {
                 }
             }
 
-            sshagent(['ec2-user']) {  // sshagent inside the *same* script block
+            // Wait for SSH to become available (most robust approach)
+            waitUntil(time: 60, unit: 'SECONDS') { // Adjust timeout as needed
+                try {
+                    // Attempt a simple SSH connection (exit 0 if successful)
+                    sshagent(['ec2-user']) { // sshagent *inside* the waitUntil
+                        sh "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@${publicIp} 'exit 0'"
+                    }
+                    return true // SSH is available
+                } catch (Exception e) {
+                    echo "SSH not yet available. Retrying..."
+                    return false // SSH is not yet available, try again
+                }
+            }
+
+            // Now that SSH is confirmed, connect and run commands
+            sshagent(['ec2-user']) {
                 sh """
                     ssh -o StrictHostKeyChecking=no ec2-user@${publicIp} << "EOF"
                         sudo yum install -y ansible
