@@ -77,6 +77,7 @@ stage('Terraform apply and Get Public IP') {
                 try {
                     publicIp = sh(returnStdout: true, script: 'terraform output instance_public_ip').trim()
                     echo "Public IP: ${publicIp}"
+                    echo "Public IP Test Talha: ${publicIp}"
                 } catch (err) {
                     echo "Error getting public IP: ${err.message}"
                     throw err
