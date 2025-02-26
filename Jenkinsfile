@@ -87,6 +87,13 @@ stage('Terraform apply and Get Public IP') {
             }
         }
     }
+
+        stage('sleep') {
+            steps {
+                // Print HelloWorld
+                sh 'echo ${publicIp}'
+            }
+        } 
         stage('SSH and Run Script') {
             steps {
                 script {
